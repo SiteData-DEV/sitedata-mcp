@@ -1,0 +1,18 @@
+name = "sitedata-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-08-26"
+keep_vars = true
+
+[vars]
+SITEDATA_OAUTH_ISSUER = "http://localhost:3000"
+SITEDATA_MCP_RESOURCE = "http://localhost:8787/mcp"
+SITEDATA_API_BASE_URL = "http://localhost:3000"
+
+[env.production]
+routes = [{ pattern = "mcp.sitedata.dev", custom_domain = true }]
+name = "sitedata-mcp"
+
+[env.production.vars]
+SITEDATA_OAUTH_ISSUER = "https://sitedata.dev"
+SITEDATA_MCP_RESOURCE = "https://mcp.sitedata.dev/mcp"
+SITEDATA_API_BASE_URL = "https://sitedata.dev"

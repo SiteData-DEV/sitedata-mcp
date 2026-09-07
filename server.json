@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.sitedata/sitedata-mcp",
+  "title": "SiteData MCP",
+  "description": "SiteData MCP for website rankings and authenticated favorites management.",
+  "repository": {
+    "url": "https://github.com/SiteData-DEV/sitedata-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://sitedata.dev",
+  "version": "0.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.sitedata.dev/mcp"
+    }
+  ]
+}

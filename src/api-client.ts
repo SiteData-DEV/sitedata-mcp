@@ -18,7 +18,15 @@ export async function callSiteDataApi(
   accessToken: string,
   internalSecret: string
 ) {
-  const url = new URL(`${baseUrl.replace(/\/$/, '')}${definition.path}`);
+  const pathArguments = new Set<string>();
+  const resolvedPath = definition.path.replace(/\{([A-Za-z][A-Za-z0-9_]*)\}/g, (_match, key: string) => {
+    const value = args[key];
+    if (value === undefined || value === null || value === '') throw new Error(`Missing path parameter: ${key}`);
+    pathArguments.add(key);
+    return encodeURIComponent(String(value));
+  });
+  const payload = Object.fromEntries(Object.entries(args).filter(([key]) => !pathArguments.has(key)));
+  const url = new URL(`${baseUrl.replace(/\/$/, '')}${resolvedPath}`);
   const headers = new Headers({
     accept: 'application/json',
     authorization: `Bearer ${accessToken}`,
@@ -27,13 +35,13 @@ export async function callSiteDataApi(
   const init: RequestInit = { method: definition.method, headers };
 
   if (definition.method === 'GET') {
-    for (const [key, value] of Object.entries(args)) {
+    for (const [key, value] of Object.entries(payload)) {
       if (value === undefined || value === null || value === '') continue;
       url.searchParams.set(key, String(value));
     }
   } else {
     headers.set('content-type', 'application/json');
-    init.body = JSON.stringify(args);
+    init.body = JSON.stringify(payload);
   }
 
   const controller = new AbortController();

@@ -38,13 +38,18 @@ function isJsonSchema(value: unknown): value is JsonSchema {
   return true;
 }
 
+// 分别校验静态路径段和完整占位符，支持 jobId，拒绝畸形花括号与路径穿越。
+function isPublicPath(path: string): boolean {
+  return /^\/api\/v1\/(?:[a-z0-9_-]+|\{[A-Za-z][A-Za-z0-9_]*\})(?:\/(?:[a-z0-9_-]+|\{[A-Za-z][A-Za-z0-9_]*\}))*$/.test(path);
+}
+
 function isPublicDefinition(value: unknown): value is PublicApiDefinition {
   if (!isRecord(value)) return false;
   return (
     (value.method === 'GET' || value.method === 'POST') &&
     typeof value.id === 'string' &&
     typeof value.path === 'string' &&
-    /^\/api\/v1\/[a-z0-9/_-]+$/.test(value.path) &&
+    (isPublicPath(value.path)) &&
     typeof value.mcpName === 'string' &&
     /^sitedata_[a-z0-9_]+$/.test(value.mcpName) &&
     typeof value.description === 'string' &&
@@ -104,8 +109,14 @@ export async function loadApiCatalog(
     });
     return catalog;
   } catch (error) {
-    console.warn('Unable to load the remote SiteData catalog; using the bundled fallback.', error);
-    return fallbackCatalog;
+    // 刷新失败保留最近一次有效契约，避免工具列表缩回内置旧版本。
+    const catalog = cached?.catalog ?? fallbackCatalog;
+    console.warn('MCP Catalog refresh failed', {
+      source: cached ? 'last-known-good' : 'bundled-fallback',
+      toolCount: catalog.length,
+      reason: error instanceof Error ? error.name : 'UnknownError',
+    });
+    return catalog;
   }
 }
 

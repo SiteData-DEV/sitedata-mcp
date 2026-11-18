@@ -89,3 +89,23 @@ test('retains the status and response body for API failures', async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+
+test('路径参数编码后替换，不重复进入 query 或 body', async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: {url:string; body:unknown}[] = [];
+  globalThis.fetch = async (input, init) => {
+    requests.push({url:String(input),body:init?.body});
+    return Response.json({code:'ok'});
+  };
+  try {
+    for (const method of ['GET','POST'] as const) {
+      await callSiteDataApi('https://example.test', {method,path:'/api/v1/tasks/{jobId}'}, {jobId:'a/b',limit:2}, 'token','secret');
+    }
+    assert.equal(requests[0]?.url,'https://example.test/api/v1/tasks/a%2Fb?limit=2');
+    assert.equal(requests[1]?.url,'https://example.test/api/v1/tasks/a%2Fb');
+    assert.deepEqual(JSON.parse(String(requests[1]?.body)),{limit:2});
+    await assert.rejects(callSiteDataApi('https://example.test',{method:'GET',path:'/api/v1/tasks/{jobId}'},{},'token','secret'),/Missing path parameter/);
+    assert.equal(requests.length,2);
+  } finally { globalThis.fetch = originalFetch; }
+});

@@ -13,7 +13,7 @@ export async function createMcpServer({
   accessToken: string;
   internalSecret: string;
 }) {
-  const server = new McpServer({ name: 'sitedata', version: '0.1.0' });
+  const server = new McpServer({ name: 'sitedata', version: '0.1.1' });
   const apiCatalog = await loadApiCatalog(baseUrl);
 
   for (const definition of apiCatalog) {
